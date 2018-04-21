@@ -1,0 +1,13 @@
+test_task:
+  env:
+    CIRRUS_WORKING_DIR: /go/src/github.com/$CIRRUS_REPO_FULL_NAME
+  container:
+    image: golang:1.10
+    additional_containers:
+      - name: azurite
+        image: arafato/azurite:latest
+        port: 10000
+
+  get_script: go get -t -v ./...
+  vet_script: go vet -v ./...
+  test_script: go test -v ./...
