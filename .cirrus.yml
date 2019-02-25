@@ -11,15 +11,3 @@ test_task:
   get_script: go get -t -v ./...
   vet_script: go vet -v ./...
   test_script: go test -v ./...
-
-deploy_docker_builder:
-  only_if: $CIRRUS_BRANCH == "master"
-  depends_on: test
-  environment:
-    DOCKER_USER_NAME: ENCRYPTED[4a0f09ba20ecf385e778f3681b1a51b8f1e00324db25fbca13496999ba3925a9da18a3e19892087a9aec9719d200a128]
-    DOCKER_PASSWORD: ENCRYPTED[83ed57e819af658bffacd3561cdeeb907a342efccbb60a613a1357ea3e6d62552005aa7f650cbd9b61a7f80a3b8f4076]
-  build_script:
-    - docker build --tag cirrusci/$CIRRUS_REPO_NAME:latest .
-  push_script:
-    - docker login --username $DOCKER_USER_NAME --password $DOCKER_PASSWORD
-    - docker push cirrusci/$CIRRUS_REPO_NAME:latest
