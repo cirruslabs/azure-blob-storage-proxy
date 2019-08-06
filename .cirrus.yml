@@ -2,7 +2,7 @@ test_task:
   env:
     CIRRUS_WORKING_DIR: /go/src/github.com/$CIRRUS_REPO_FULL_NAME
   container:
-    image: golang:1.10
+    image: golang:latest
     additional_containers:
       - name: azurite
         image: arafato/azurite:latest
