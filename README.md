@@ -1,4 +1,4 @@
-[![Build Status](https://api.cirrus-ci.com/github/cirruslabs/azure-blob-storage-proxy.svg)](https://cirrus-ci.com/github/cirruslabs/azure-blob-storage-proxy) [![](https://images.microbadger.com/badges/image/cirrusci/azure-blob-storage-proxy.svg)](https://microbadger.com/images/cirrusci/azure-blob-storage-proxy)
+[![Build Status](https://api.cirrus-ci.com/github/cirruslabs/azure-blob-storage-proxy.svg)](https://cirrus-ci.com/github/cirruslabs/azure-blob-storage-proxy)
 
 HTTP proxy with REST API to interact with Azure's Blob Storage.
 
@@ -6,6 +6,13 @@ Simply allows to use `HEAD`, `GET` or `PUT` requests to check blob's availabilit
 blobs to a specified Azure container by blob's name.
 
 For example, `GET` for `<proxy_url>/some/file` will return `some/file` blob if it exists.
+
+Prebuilt Docker image is available on GitHub's Container Registry:
+
+```bash
+docker pull ghcr.io/cirruslabs/azure-blob-storage-proxy:latest
+```
+
 
 # Usage 
 
