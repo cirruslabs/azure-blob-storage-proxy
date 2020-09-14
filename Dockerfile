@@ -1,15 +1,14 @@
-FROM golang:1.10-alpine as builder
+FROM golang:latest as builder
 
-RUN apk update && apk upgrade && \
-    apk add --no-cache git
-
-WORKDIR /go/src/github.com/cirruslabs/azure-blob-storage-proxy
-ADD . /go/src/github.com/cirruslabs/azure-blob-storage-proxy
+WORKDIR /build
+ADD . /build
 
 RUN go get -t -v ./... && \
     go build -o azure-blob-storage-proxy ./cmd/
 
-FROM alpine
+FROM alpine:latest
+LABEL org.opencontainers.image.source=https://github.com/cirruslabs/azure-blob-storage-proxy/
+
 WORKDIR /svc
-COPY --from=builder /go/src/github.com/cirruslabs/azure-blob-storage-proxy/azure-blob-storage-proxy /svc/
+COPY --from=builder /build/azure-blob-storage-proxy /svc/
 ENTRYPOINT ["/svc/azure-blob-storage-proxy"]

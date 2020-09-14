@@ -2,13 +2,9 @@ package http_cache
 
 import (
 	"bufio"
-	"bytes"
 	"context"
-	"encoding/base64"
-	"encoding/binary"
 	"fmt"
-	"github.com/Azure/azure-storage-blob-go/2017-07-29/azblob"
-	"io"
+	"github.com/Azure/azure-storage-blob-go/azblob"
 	"log"
 	"net"
 	"net/http"
@@ -20,7 +16,7 @@ type StorageProxy struct {
 }
 
 func NewStorageProxy(containerURL *azblob.ContainerURL, defaultPrefix string) *StorageProxy {
-	metadataResponse, _ := containerURL.GetPropertiesAndMetadata(context.Background(), azblob.LeaseAccessConditions{})
+	metadataResponse, _ := containerURL.GetProperties(context.Background(), azblob.LeaseAccessConditions{})
 	if metadataResponse == nil {
 		log.Printf("Creating container %s...", containerURL)
 		containerURL.Create(context.Background(), make(map[string]string), azblob.PublicAccessBlob)
@@ -67,16 +63,13 @@ func (proxy StorageProxy) handler(w http.ResponseWriter, r *http.Request) {
 
 func (proxy StorageProxy) downloadBlob(w http.ResponseWriter, name string) {
 	blockBlobURL := proxy.containerURL.NewBlockBlobURL(proxy.objectName(name))
-	downloadStream := azblob.NewDownloadStream(
-		context.Background(),
-		func(ctx context.Context, blobRange azblob.BlobRange, ac azblob.BlobAccessConditions, rangeGetContentMD5 bool) (*azblob.GetResponse, error) {
-			return blockBlobURL.GetBlob(ctx, blobRange, ac, rangeGetContentMD5)
-		},
-		azblob.DownloadStreamOptions{},
-	)
-	defer downloadStream.Close()
-	bufferedReader := bufio.NewReader(downloadStream)
-	_, err := bufferedReader.WriteTo(w)
+	get, err := blockBlobURL.Download(context.Background(), 0, 0, azblob.BlobAccessConditions{}, false)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	bufferedReader := bufio.NewReader(get.Body(azblob.RetryReaderOptions{}))
+	_, err = bufferedReader.WriteTo(w)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 	} else {
@@ -86,7 +79,7 @@ func (proxy StorageProxy) downloadBlob(w http.ResponseWriter, name string) {
 
 func (proxy StorageProxy) checkBlobExists(w http.ResponseWriter, name string) {
 	blockBlobURL := proxy.containerURL.NewBlockBlobURL(proxy.objectName(name))
-	response, err := blockBlobURL.GetPropertiesAndMetadata(context.Background(), azblob.BlobAccessConditions{})
+	response, err := blockBlobURL.GetProperties(context.Background(), azblob.BlobAccessConditions{})
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
@@ -95,49 +88,13 @@ func (proxy StorageProxy) checkBlobExists(w http.ResponseWriter, name string) {
 }
 
 func (proxy StorageProxy) uploadBlob(w http.ResponseWriter, r *http.Request, name string) {
-	blockIDIntToBase64 := func(blockID int) string {
-		binaryBlockID := (&[4]byte{})[:] // All block IDs are 4 bytes long
-		binary.LittleEndian.PutUint32(binaryBlockID, uint32(blockID))
-		return base64.StdEncoding.EncodeToString(binaryBlockID)
-	}
 	blockBlobURL := proxy.containerURL.NewBlockBlobURL(proxy.objectName(name))
-	readBufferSize := int(1024 * 1024)
-	readBuffer := make([]byte, readBufferSize)
-	bufferedBodyReader := bufio.NewReaderSize(r.Body, readBufferSize)
-	uploadedParts := 0
-	blockIds := make([]string, 0)
-	for {
-		n, err := bufferedBodyReader.Read(readBuffer)
 
-		if n > 0 {
-			blockId := blockIDIntToBase64(uploadedParts)
-			_, err = blockBlobURL.PutBlock(
-				context.Background(),
-				blockId,
-				bytes.NewReader(readBuffer[:n]),
-				azblob.LeaseAccessConditions{},
-			)
-			blockIds = append(blockIds, blockId)
-			uploadedParts += 1
-		}
-
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			errorMsg := fmt.Sprintf("Failed read cache body! %s", err)
-			log.Print(errorMsg)
-			w.Write([]byte(errorMsg))
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-	}
-	_, err := blockBlobURL.PutBlockList(
+	_, err := azblob.UploadStreamToBlockBlob(
 		context.Background(),
-		blockIds,
-		azblob.Metadata{},
-		azblob.BlobHTTPHeaders{},
-		azblob.BlobAccessConditions{},
+		bufio.NewReader(r.Body),
+		blockBlobURL,
+		azblob.UploadStreamToBlockBlobOptions{},
 	)
 	if err != nil {
 		log.Fatal(err)

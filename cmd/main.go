@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/Azure/azure-storage-blob-go/2017-07-29/azblob"
+	"github.com/Azure/azure-storage-blob-go/azblob"
 	"github.com/cirruslabs/azure-blob-storage-proxy/proxy"
 	"log"
 	"net/url"
@@ -30,7 +30,10 @@ func main() {
 		log.Fatal("Please specify Azure Account Key")
 	}
 
-	credential := azblob.NewSharedKeyCredential(AzureAccountName, AzureAccountKey)
+	credential, err := azblob.NewSharedKeyCredential(AzureAccountName, AzureAccountKey)
+	if err != nil {
+		log.Fatalf("Failed to create shared credentials: %s", err)
+	}
 	pipeline := azblob.NewPipeline(credential, azblob.PipelineOptions{})
 	azureURL, err := url.Parse(fmt.Sprintf("https://%s.blob.core.windows.net", AzureAccountName))
 	if err != nil {

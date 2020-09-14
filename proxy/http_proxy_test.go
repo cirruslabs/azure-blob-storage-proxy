@@ -1,7 +1,7 @@
 package http_cache
 
 import (
-	"github.com/Azure/azure-storage-blob-go/2017-07-29/azblob"
+	"github.com/Azure/azure-storage-blob-go/azblob"
 	"github.com/go-test/deep"
 	"net/http"
 	"net/http/httptest"
@@ -11,7 +11,7 @@ import (
 )
 
 func CreateLocalProxy(defaultPrefix string) *StorageProxy {
-	credential := azblob.NewSharedKeyCredential("devstoreaccount1", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==")
+	credential, _ := azblob.NewSharedKeyCredential("devstoreaccount1", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==")
 	pipeline := azblob.NewPipeline(credential, azblob.PipelineOptions{})
 	azureURL, _ := url.Parse("http://localhost:10000/devstoreaccount1")
 	serviceURL := azblob.NewServiceURL(*azureURL, pipeline)

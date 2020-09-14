@@ -1,13 +1,14 @@
 test_task:
-  env:
-    CIRRUS_WORKING_DIR: /go/src/github.com/$CIRRUS_REPO_FULL_NAME
   container:
     image: golang:latest
     additional_containers:
       - name: azurite
-        image: arafato/azurite:latest
+        image: mcr.microsoft.com/azure-storage/azurite
         port: 10000
 
+  modules_cache:
+    fingerprint_script: cat go.sum
+    folder: $GOPATH/pkg/mod
   get_script: go get -t -v ./...
   vet_script: go vet -v ./...
   test_script: go test -v ./...
