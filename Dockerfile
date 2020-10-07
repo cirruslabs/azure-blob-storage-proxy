@@ -3,8 +3,7 @@ FROM golang:latest as builder
 WORKDIR /build
 ADD . /build
 
-RUN go get -t -v ./... && \
-    CGO_ENABLED=0 go build -o azure-blob-storage-proxy ./cmd/
+RUN CGO_ENABLED=0 go build -o azure-blob-storage-proxy ./cmd/
 
 FROM alpine:latest
 LABEL org.opencontainers.image.source=https://github.com/cirruslabs/azure-blob-storage-proxy/
