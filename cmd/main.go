@@ -15,7 +15,7 @@ func main() {
 	var defaultPrefix string
 	flag.StringVar(&defaultPrefix, "prefix", "", "Optional prefix for all objects. For example, use --prefix=foo/.")
 	var containerName string
-	flag.StringVar(&defaultPrefix, "container", "cirrus-ci-caches", "Container to use for storing caches.")
+	flag.StringVar(&containerName, "container", "cirrus-ci-caches", "Container to use for storing caches.")
 	var AzureAccountName string
 	flag.StringVar(&AzureAccountName, "account-name", "", "Azure Account Name")
 	var AzureAccountKey string
