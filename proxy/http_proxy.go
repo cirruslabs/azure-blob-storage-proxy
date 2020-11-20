@@ -34,7 +34,7 @@ func (proxy StorageProxy) objectName(name string) string {
 func (proxy StorageProxy) Serve(port int64) error {
 	http.HandleFunc("/", proxy.handler)
 
-	listener, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", port))
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 
 	if err == nil {
 		address := listener.Addr().String()
