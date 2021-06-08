@@ -71,9 +71,7 @@ func (proxy StorageProxy) downloadBlob(w http.ResponseWriter, name string) {
 	bufferedReader := bufio.NewReader(get.Body(azblob.RetryReaderOptions{}))
 	_, err = bufferedReader.WriteTo(w)
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-	} else {
-		w.WriteHeader(http.StatusOK)
+		log.Printf("Failed to serve blob %q: %v", name, err)
 	}
 }
 
