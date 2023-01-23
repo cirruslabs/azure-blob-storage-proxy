@@ -1,23 +1,21 @@
-package http_cache
+package http_proxy
 
 import (
-	"github.com/Azure/azure-storage-blob-go/azblob"
-	"github.com/go-test/deep"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"strings"
 	"testing"
+
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
+	"github.com/go-test/deep"
 )
 
 func CreateLocalProxy(defaultPrefix string) *StorageProxy {
 	credential, _ := azblob.NewSharedKeyCredential("devstoreaccount1", "Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==")
-	pipeline := azblob.NewPipeline(credential, azblob.PipelineOptions{})
-	azureURL, _ := url.Parse("http://localhost:10000/devstoreaccount1")
-	serviceURL := azblob.NewServiceURL(*azureURL, pipeline)
-	containerURL := serviceURL.NewContainerURL("cirrus-ci-caches-test")
-
-	return NewStorageProxy(&containerURL, defaultPrefix)
+	azureURL := "http://localhost:10000/devstoreaccount1"
+	client, _ := azblob.NewClientWithSharedKeyCredential(azureURL, credential, &azblob.ClientOptions{})
+	containerName := "cirrus-ci-caches-test"
+	return NewStorageProxy(client, containerName, defaultPrefix)
 }
 
 func Test_All(t *testing.T) {
