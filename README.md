@@ -10,7 +10,7 @@ For example, `GET` for `<proxy_url>/some/file` will return `some/file` blob if i
 Prebuilt Docker image is available on Docker Hub:
 
 ```bash
-docker pull cirrusci/azure-blob-storage-proxy:latest
+docker pull ghcr.io/cirruslabs/azure-blob-storage-proxy:latest
 ```
 
 
