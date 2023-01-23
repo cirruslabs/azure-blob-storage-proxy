@@ -12,3 +12,13 @@ test_task:
   get_script: go get -t -v ./...
   vet_script: go vet -v ./...
   test_script: go test -v ./...
+
+deploy_docker_builder:
+  only_if: $CIRRUS_BRANCH == "master"
+  environment:
+    GITHUB_TOKEN: ENCRYPTED[!98ace8259c6024da912c14d5a3c5c6aac186890a8d4819fad78f3e0c41a4e0cd3a2537dd6e91493952fb056fa434be7c!]
+  login_script: echo $GITHUB_TOKEN | docker login ghcr.io -u fkorotkov --password-stdin
+  build_script:
+    - docker --version
+    - docker build --tag ghcr.io/cirruslabs/azure-blob-storage-proxy:latest .
+  push_script: docker push ghcr.io/cirruslabs/azure-blob-storage-proxy:latest
