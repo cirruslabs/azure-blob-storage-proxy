@@ -3,10 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/Azure/azure-storage-blob-go/azblob"
-	"github.com/cirruslabs/azure-blob-storage-proxy/proxy"
 	"log"
-	"net/url"
+
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
+	"github.com/cirruslabs/azure-blob-storage-proxy/http_proxy"
 )
 
 func main() {
@@ -34,16 +34,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to create shared credentials: %s", err)
 	}
-	pipeline := azblob.NewPipeline(credential, azblob.PipelineOptions{})
-	azureURL, err := url.Parse(fmt.Sprintf("https://%s.blob.core.windows.net", AzureAccountName))
+	azureURL := fmt.Sprintf("https://%s.blob.core.windows.net", AzureAccountName)
+	client, err := azblob.NewClientWithSharedKeyCredential(azureURL, credential, &azblob.ClientOptions{})
 	if err != nil {
 		log.Fatalf("Failed to create a storage client: %s", err)
 	}
-
-	serviceURL := azblob.NewServiceURL(*azureURL, pipeline)
-	containerURL := serviceURL.NewContainerURL(containerName)
-
-	storageProxy := http_cache.NewStorageProxy(&containerURL, defaultPrefix)
+	storageProxy := http_proxy.NewStorageProxy(client, containerName, defaultPrefix)
 	err = storageProxy.Serve(port)
 	if err != nil {
 		log.Fatalf("Failed to start proxy: %s", err)
