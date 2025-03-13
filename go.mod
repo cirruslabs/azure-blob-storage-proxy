@@ -1,6 +1,8 @@
 module github.com/cirruslabs/azure-blob-storage-proxy
 
-go 1.19
+go 1.23.0
+
+toolchain go1.24.1
 
 replace github.com/cirruslabs/azure-blob-storage-proxy/http_proxy => ./http_proxy
 
